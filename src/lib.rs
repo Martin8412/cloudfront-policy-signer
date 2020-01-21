@@ -76,7 +76,7 @@ impl fmt::Display for Error {
 ///
 ///
 fn generate_canned_policy(resource: &str, expiry: u64) -> Vec<u8> {
-    format!("{{\"Statement\":[{{\"Resource\":\"{}}}\",\"Condition\":{{\"DateLessThan\":{{\"AWS:EpochTime\":{}}}}}]}}", resource, expiry).into_bytes()
+    format!("{{\"Statement\":[{{\"Resource\":\"{}\",\"Condition\":{{\"DateLessThan\":{{\"AWS:EpochTime\":{}}}}}}}]}}", resource, expiry).into_bytes()
 }
 
 /// Reads the contents of a file into memory and returns it as a vector of bytes
