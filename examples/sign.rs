@@ -34,7 +34,18 @@ fn main() {
     // Replace with Key-Pair-Id from AWS console
     let key_pair_id = "APKAIEXAMPLE";
 
-    let signature = cloudfront_policy_signer::create_canned_policy_signature(resource, expiry, certificate_location).unwrap();
+    let signature = cloudfront_policy_signer::create_canned_policy_signature(
+        resource,
+        expiry,
+        certificate_location,
+    )
+    .unwrap();
 
-    println!("Signed URL is {}", format!("{}?Expires={}&Signature={}&Key-Pair-Id={}", resource, expiry, signature, key_pair_id));
+    println!(
+        "Signed URL is {}",
+        format!(
+            "{}?Expires={}&Signature={}&Key-Pair-Id={}",
+            resource, expiry, signature, key_pair_id
+        )
+    );
 }
