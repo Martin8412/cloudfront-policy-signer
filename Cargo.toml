@@ -1,0 +1,17 @@
+[package]
+name = "cloudfront-policy-signer"
+version = "0.1.0"
+authors = ["Martin Karlsen Jensen <mkj@concordium.com>"]
+description = "Simple crate to sign canned policies for AWS CloudFront"
+homepage = "https://github.com/Martin8412/cloudfront-policy-signer"
+repository = "https://github.com/Martin8412/cloudfront-policy-signer.git"
+
+keywords = ["CloudFront", "AWS", "Signing"]
+license = "MIT"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+openssl = "0.10.26"
+log = "0.4.8"
