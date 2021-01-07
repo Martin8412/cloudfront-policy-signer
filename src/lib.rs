@@ -51,16 +51,16 @@ impl fmt::Display for Error {
         match self {
             Error::IOError(e) => {
                 write!(f, "System IO error: {}", e)
-            },
+            }
             Error::PrivateKeyParseError => {
                 write!(f, "The private key was in an unsupported format or somehow malformed. It only accepts keys in PEM-encoded PKCS#1")
-            },
+            }
             Error::PrivateKeyConvertError => {
                 write!(f, "The key could not be converted from a openssl::rsa::Rsa<openssl::pkey::Private> to a PKey<Private>. Refer to log output")
-            },
+            }
             Error::CouldNotSign => {
                 write!(f, "The policy could not be signed. Refer log output")
-            },
+            }
             Error::Unknown => {
                 write!(f, "Unkown error occurred")
             }
@@ -96,7 +96,7 @@ fn read_rsa_private_key(file: &str) -> Result<Vec<u8>, Error> {
     })
 }
 
-/// Parses the read bytes into an represntation of a RSA private key appropriate for OpenSSL
+/// Parses the read bytes into an representation of a RSA private key appropriate for OpenSSL
 ///
 /// # Arguments
 /// * `key` - An array of bytes containing a RSA private key part
@@ -172,16 +172,13 @@ fn encode_signature_url_safe(bytes: &[u8]) -> String {
 /// ```
 /// use cloudfront_url_signer;
 ///
-/// fn main() {
-///    let resource = "https://example.cloudfront.net/flowerpot.png";
-///    let expiry = 1579532331;
-///    let certificate_location = "examples/key.pem";
-///    let key_pair_id = "APKAIEXAMPLE";
+///let resource = "https://example.cloudfront.net/flowerpot.png";
+///let expiry = 1579532331;
+///let certificate_location = "examples/key.pem";
+///let key_pair_id = "APKAIEXAMPLE";
+///let signature = cloudfront_url_signer::create_canned_policy_signature(resource, expiry, certificate_location).unwrap();
 ///
-///    let signature = cloudfront_url_signer::create_canned_policy_signature(resource, expiry, certificate_location).unwrap();
-///
-///    println!("Signed URL is {}", format!("{}?Expires={}&Signature={}&Key-Pair-Id={}", resource, expiry, signature, key_pair_id));
-///}
+///println!("Signed URL is {}", format!("{}?Expires={}&Signature={}&Key-Pair-Id={}", resource, expiry, signature, key_pair_id));
 /// ```
 ///
 pub fn create_canned_policy_signature(
@@ -189,10 +186,50 @@ pub fn create_canned_policy_signature(
     expiry: u64,
     private_key_location: &str,
 ) -> Result<String, Error> {
-    read_rsa_private_key(private_key_location).and_then(|key| {
-        parse_rsa_private_key(&key).and_then(|private_key| {
-            sign_canned_policy(&generate_canned_policy(resource, expiry), &private_key)
-                .and_then(|signed_policy| Ok(encode_signature_url_safe(&signed_policy)))
+    let key = read_file_to_private_key(private_key_location)?;
+    let signed_policy = sign_canned_policy(&generate_canned_policy(resource, expiry), &key)?;
+
+    Ok(encode_signature_url_safe(&signed_policy))
+}
+
+pub fn read_file_to_private_key(private_key_location: &str) -> Result<PKey<Private>, Error> {
+    let key = read_rsa_private_key(private_key_location)?;
+
+    parse_rsa_private_key(&key)
+}
+
+/// Struct to create a URL from CloudFront with a cached private key
+/// Unliked method `create_canned_policy_signature`, calling `create_canned_policy_signature_url`
+/// in an instance of this struct will not read the private key file every time it is invoked.
+pub struct CloudFrontCannedPolicySigner {
+    private_key: PKey<Private>,
+}
+
+impl CloudFrontCannedPolicySigner {
+    /// Constructs a new instance of `CloudFrontCannedPolicySigner`
+    /// # Arguments
+    /// * `private_key_location` - Path where the private key file can be found
+    pub fn new(private_key_location: &str) -> Result<CloudFrontCannedPolicySigner, Error> {
+        Ok(Self {
+            private_key: read_file_to_private_key(private_key_location)?,
         })
-    })
+    }
+
+    /// Creates a URL to CloudFront which can be used to download the object
+    pub fn create_canned_policy_signature_url(
+        &self,
+        resource: &str,
+        expiry: u64,
+        key_pair_id: &str,
+    ) -> Result<String, Error> {
+        let signed_policy =
+            sign_canned_policy(&generate_canned_policy(resource, expiry), &self.private_key)?;
+        let signature = encode_signature_url_safe(&signed_policy);
+        let url = format!(
+            "{}?Expires={}&Signature={}&Key-Pair-Id={}",
+            resource, expiry, signature, key_pair_id
+        );
+
+        Ok(url)
+    }
 }

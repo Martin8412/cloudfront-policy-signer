@@ -23,12 +23,13 @@ SOFTWARE.
 */
 
 use cloudfront_policy_signer;
+use cloudfront_policy_signer::CloudFrontCannedPolicySigner;
 
 fn main() {
     // Replace me with actual URI
     let resource = "https://example.cloudfront.net/flowerpot.png";
     // Replace me with actual desired expiry time
-    let expiry = 1579532331;
+    let expiry = 2579532331;
     // Replace the key
     let certificate_location = "examples/key.pem";
     // Replace with Key-Pair-Id from AWS console
@@ -40,12 +41,17 @@ fn main() {
         certificate_location,
     )
     .unwrap();
-
-    println!(
-        "Signed URL is {}",
-        format!(
-            "{}?Expires={}&Signature={}&Key-Pair-Id={}",
-            resource, expiry, signature, key_pair_id
-        )
+    let signed_url = format!(
+        "{}?Expires={}&Signature={}&Key-Pair-Id={}",
+        resource, expiry, signature, key_pair_id
     );
+
+    println!("Signed URL is {}", signed_url);
+
+    let signed_url_struct = CloudFrontCannedPolicySigner::new("examples/key.pem")
+        .unwrap()
+        .create_canned_policy_signature_url(resource, expiry, key_pair_id)
+        .unwrap();
+
+    assert_eq!(signed_url, signed_url_struct);
 }
