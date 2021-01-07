@@ -192,7 +192,11 @@ pub fn create_canned_policy_signature(
     Ok(encode_signature_url_safe(&signed_policy))
 }
 
-pub fn read_file_to_private_key(private_key_location: &str) -> Result<PKey<Private>, Error> {
+/// Reads a .pem file and tries to transform it into a PKey<Private>
+///
+/// # Arguments
+/// * `private_key_location` - Path where the private key file can be found
+fn read_file_to_private_key(private_key_location: &str) -> Result<PKey<Private>, Error> {
     let key = read_rsa_private_key(private_key_location)?;
 
     parse_rsa_private_key(&key)
