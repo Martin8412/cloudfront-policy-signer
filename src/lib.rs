@@ -203,15 +203,17 @@ pub fn read_file_to_private_key(private_key_location: &str) -> Result<PKey<Priva
 /// in an instance of this struct will not read the private key file every time it is invoked.
 pub struct CloudFrontCannedPolicySigner {
     private_key: PKey<Private>,
+    key_pair_id: String
 }
 
 impl CloudFrontCannedPolicySigner {
     /// Constructs a new instance of `CloudFrontCannedPolicySigner`
     /// # Arguments
     /// * `private_key_location` - Path where the private key file can be found
-    pub fn new(private_key_location: &str) -> Result<CloudFrontCannedPolicySigner, Error> {
+    pub fn new(private_key_location: &str, key_pair_id: String) -> Result<CloudFrontCannedPolicySigner, Error> {
         Ok(Self {
             private_key: read_file_to_private_key(private_key_location)?,
+            key_pair_id
         })
     }
 
@@ -220,14 +222,13 @@ impl CloudFrontCannedPolicySigner {
         &self,
         resource: &str,
         expiry: u64,
-        key_pair_id: &str,
     ) -> Result<String, Error> {
         let signed_policy =
             sign_canned_policy(&generate_canned_policy(resource, expiry), &self.private_key)?;
         let signature = encode_signature_url_safe(&signed_policy);
         let url = format!(
             "{}?Expires={}&Signature={}&Key-Pair-Id={}",
-            resource, expiry, signature, key_pair_id
+            resource, expiry, signature, self.key_pair_id
         );
 
         Ok(url)

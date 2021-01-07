@@ -48,9 +48,9 @@ fn main() {
 
     println!("Signed URL is {}", signed_url);
 
-    let signed_url_struct = CloudFrontCannedPolicySigner::new("examples/key.pem")
+    let signed_url_struct = CloudFrontCannedPolicySigner::new("examples/key.pem", key_pair_id.to_string())
         .unwrap()
-        .create_canned_policy_signature_url(resource, expiry, key_pair_id)
+        .create_canned_policy_signature_url(resource, expiry)
         .unwrap();
 
     assert_eq!(signed_url, signed_url_struct);
