@@ -210,10 +210,11 @@ impl CloudFrontCannedPolicySigner {
     /// Constructs a new instance of `CloudFrontCannedPolicySigner`
     /// # Arguments
     /// * `private_key_location` - Path where the private key file can be found
-    pub fn new(private_key_location: &str, key_pair_id: String) -> Result<CloudFrontCannedPolicySigner, Error> {
+    /// * `key_pair_id` - The key pair ID from AWS CloudFront
+    pub fn new<T: ToString>(private_key_location: &str, key_pair_id: T) -> Result<CloudFrontCannedPolicySigner, Error> {
         Ok(Self {
             private_key: read_file_to_private_key(private_key_location)?,
-            key_pair_id
+            key_pair_id: key_pair_id.to_string()
         })
     }
 
