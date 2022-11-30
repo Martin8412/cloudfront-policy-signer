@@ -222,6 +222,17 @@ impl CloudFrontCannedPolicySigner {
         })
     }
 
+    /// Constructs a new instance of `CloudFrontCannedPolicySigner`
+    /// # Arguments
+    /// * `private_key` - In memory RSA private key
+    /// * `key_pair_id` - The key pair ID from AWS CloudFront
+    pub fn new_in_memory<T: ToString>(private_key: &[u8], key_pair_id: T) -> Result<CloudFrontCannedPolicySigner, Error> {
+        Ok(Self {
+            private_key: parse_rsa_private_key(private_key)?,
+            key_pair_id: key_pair_id.to_string()
+        })
+    }
+
     /// Creates a URL to CloudFront which can be used to download the object
     pub fn create_canned_policy_signature_url(
         &self,

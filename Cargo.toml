@@ -1,6 +1,6 @@
 [package]
 name = "cloudfront-policy-signer"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["Martin Karlsen Jensen <martin@martin8412.dk>"]
 description = "Simple crate to sign canned policies for AWS CloudFront"
 homepage = "https://github.com/Martin8412/cloudfront-policy-signer"
